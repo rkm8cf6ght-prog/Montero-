@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panda Trading | Simulador Financiero Global</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js for real-time asset charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        gold: {
+                            300: '#f3e5ab',
+                            400: '#e5c158',
+                            500: '#d4af37',
+                            600: '#aa8c2c',
+                            700: '#806821'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #050505;
+            color: #f3f4f6;
+        }
+        .tab-active {
+            position: relative;
+        }
+        .tab-active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(to right, #d4af37, #f3e5ab);
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a0a0a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2a2617;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #d4af37;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-gold-500 selection:text-black">
+
+    <header class="sticky top-0 z-50 bg-[#0a0a0a]/90 backdrop-blur-md border-b border-[#221f14]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <!-- Brand Logo -->
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('getting-started')">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-gold-500 to-amber-700 flex items-center justify-center shadow-lg shadow-gold-500/20 text-black font-black text-2xl">
+                    🐼
+                </div>
+                <div>
+                    <span class="text-xl font-black tracking-tight text-white">PANDA<span class="text-gold-400">TRADING</span></span>
+                    <span class="block text-[10px] text-slate-400 uppercase tracking-widest font-semibold">Simulador Global Pro</span>
+                </div>
+            </div>
+
+            <!-- Desktop Nav Links -->
+            <nav class="hidden md:flex items-center space-x-6 text-sm font-medium">
+                <button onclick="switchTab('getting-started')" id="nav-getting-started" class="tab-active py-2 transition-colors text-gold-400 font-bold">🚀 Guía de Inicio</button>
+                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="py-2 text-slate-400 transition-colors hover:text-gold-400">Mercados</button>
+                <button onclick="switchTab('simulator')" id="nav-simulator" class="py-2 text-slate-400 transition-colors hover:text-gold-400">Portafolio</button>
+                <button onclick="switchTab('calculator')" id="nav-calculator" class="py-2 text-slate-400 transition-colors hover:text-gold-400">Calculadora</button>
+                <button onclick="switchTab('academy')" id="nav-academy" class="py-2 text-slate-400 transition-colors hover:text-gold-400">Academia</button>
+                <button onclick="switchTab('ai')" id="nav-ai" class="py-2 text-slate-400 transition-colors hover:text-gold-400">Asistente IA</button>
+            </nav>
+
+            <!-- User Balance & Profile Quick View -->
+            <div class="flex items-center space-x-3">
+                <div class="bg-[#121212] border border-[#2a2617] px-3.5 py-2 rounded-xl flex items-center space-x-3">
+                    <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                    <div class="text-right">
+                        <span class="text-[10px] text-slate-400 block uppercase font-mono tracking-wider">Capital Virtual</span>
+                        <span id="header-balance" class="text-sm sm:text-base font-extrabold text-gold-400 font-mono">$10,000.00</span>
+                    </div>
+                </div>
+                <button onclick="resetAccount()" title="Reiniciar cuenta" class="p-2.5 rounded-xl bg-[#121212] border border-[#2a2617] text-slate-400 hover:text-gold-400 hover:border-gold-500/30 transition-all">
+                    <i class="fa-solid fa-rotate-right text-sm"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Bottom Nav bar -->
+        <div class="md:hidden flex justify-around bg-[#0a0a0a] border-t border-[#221f14] py-2.5 px-2">
+            <button onclick="switchTab('getting-started')" id="mob-getting-started" class="flex flex-col items-center text-gold-400 text-xs font-bold">
+                <i class="fa-solid fa-rocket text-base mb-0.5"></i>Inicio
+            </button>
+            <button onclick="switchTab('dashboard')" id="mob-dashboard" class="flex flex-col items-center text-slate-400 text-xs">
+                <i class="fa-solid fa-chart-pie text-base mb-0.5"></i>Mercados
+            </button>
+            <button onclick="switchTab('simulator')" id="mob-simulator" class="flex flex-col items-center text-slate-400 text-xs">
+                <i class="fa-solid fa-wallet text-base mb-0.5"></i>Portafolio
+            </button>
+            <button onclick="switchTab('calculator')" id="mob-calculator" class="flex flex-col items-center text-slate-400 text-xs">
+                <i class="fa-solid fa-calculator text-base mb-0.5"></i>Calculadora
+            </button>
+            <button onclick="switchTab('ai')" id="mob-ai" class="flex flex-col items-center text-slate-400 text-xs">
+                <i class="fa-solid fa-robot text-base mb-0.5"></i>IA Bot
+            </button>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- TAB: GETTING STARTED / PASO A PASO -->
+        <section id="tab-getting-started" class="space-y-6">
+            <div class="bg-gradient-to-r from-[#121212] via-[#0d0d0d] to-[#121212] border border-gold-500/30 rounded-2xl p-6 sm:p-10 shadow-2xl relative overflow-hidden">
+                <div class="absolute right-0 top-0 translate-x-8 -translate-y-8 w-72 h-72 bg-gold-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10">
+                    <span class="text-xs uppercase tracking-widest font-extrabold text-gold-400 bg-gold-500/10 px-3.5 py-1.5 rounded-full border border-gold-500/20">Guía Definitiva de Inversión</span>
+                    <h1 class="text-2xl sm:text-4xl lg:text-5xl font-black text-white mt-4 tracking-tight">Comienza a Invertir como un Profesional</h1>
+                    <p class="text-slate-300 text-sm sm:text-base mt-3 max-w-3xl leading-relaxed">Te regalamos <strong class="text-gold-400">$10,000 USD virtuales</strong> para dominar los mercados de <strong class="text-white">Inteligencia Artificial, Petróleo WTI, Trigo y Criptomonedas</strong> sin arriesgar capital real.</p>
+                </div>
+            </div>
+
+            <!-- Step by Step Cards Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Step 1 -->
+                <div class="bg-[#121212] border border-[#2a2617] rounded-2xl p-6 shadow-2xl flex flex-col justify-between relative group hover:border-gold-500/40 transition-all">
+                    <div class="absolute top-4 right-4 w-8 h-8 rounded-full bg-gold-500/10 border border-gold-500/30 text-gold-400 font-bold flex items-center justify-center text-xs font-mono">01</div>
+                    <div>
+                        <div class="w-12 h-12 bg-gold-500/10 rounded-xl flex items-center justify-center text-gold-400 text-xl mb-4 border border-gold-500/20">
+                            <i class="fa-solid fa-wallet"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-white">Revisa tu Capital</h3>
+                        <p class="text-xs sm:text-sm text-slate-400 mt-2 leading-relaxed">Tu cuenta arranca con $10,000.00 USD virtuales listos para desplegarse en cualquier activo financiero global.</p>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-[#221f14]">
+                        <span class="text-xs text-gold-400 font-semibold flex items-center space-x-1.5">
+                            <i class="fa-solid fa-check-circle"></i><span>Saldo verificado</span>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="bg-[#121212] border border-[#2a2617] rounded-2xl p-6 shadow-2xl flex flex-col justify-between relative group hover:border-gold-500/40 transition-all">
+                    <div class="absolute top-4 right-4 w-8 h-8 rounded-full bg-gold-500/10 border border-gold-500/30 text-gold-400 font-bold flex items-center justify-center text-xs font-mono">02</div>
+                    <div>
+                        <div class="w-12 h-12 bg-gold-500/10 rounded-xl flex items-center justify-center text-gold-400 text-xl mb-4 border border-gold-500/20">
+                            <i class="fa-solid fa-chart-line"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-white">Elige tu Mercado</h3>
+                        <p class="text-xs sm:text-sm text-slate-400 mt-2 leading-relaxed">Explora acciones de IA (NVIDIA, Microsoft), Petróleo Crudo WTI, Trigo de Chicago o Criptomonedas con gráficos en vivo.</p>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-[#221f14]">
+                        <button onclick="switchTab('dashboard')" class="text-xs text-gold-400 font-bold hover:underline flex items-center space-x-1.5">
+                            <span>Ir a Mercados</span><i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="bg-[#121212] border border-[#2a2617] rounded-2xl p-6 shadow-2xl flex flex-col justify-between relative group hover:border-gold-500/40 transition-all">
+                    <div class="absolute top-4 right-4 w-8 h-8 rounded-full bg-gold-500/10 border border-gold-500/30 text-gold-400 font-bold flex items-center justify-center text-xs font-mono">03</div>
+                    <div>
+                        <div class="w-12 h-12 bg-gold-500/10 rounded-xl flex items-center justify-center text-gold-400 text-xl mb-4 border border-gold-500/20">
+                            <i class="fa-solid fa-calculator"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-white">Calcula Ganancias</h3>
+                        <p class="text-xs sm:text-sm text-slate-400 mt-2 leading-relaxed">Usa nuestra calculadora interactiva para simular el rendimiento compuesto de tu inversión a 1, 3 o 5 años.</p>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-[#221f14]">
+                        <button onclick="switchTab('calculator')" class="text-xs text-gold-400 font-bold hover:underline flex items-center space-x-1.5">
+                            <span>Abrir Calculadora</span><i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 4 -->
+                <div class="bg-[#121212] border border-[#2a2617] rounded-2xl p-6 shadow-2xl flex flex-col justify-between relative group hover:border-gold-500/40 transition-all">
+                    <div class="absolute top-4 right-4 w-8 h-8 rounded-full bg-gold-500/10 border border-gold-500/30 text-gold-400 font-bold flex items-center justify-center text-xs font-mono">04</div>
+                    <div>
+                        <div class="w-12 h-12 bg-gold-500/10 rounded-xl flex items-center justify-center text-gold-400 text-xl mb-4 border border-gold-500/20">
+                            <i class="fa-solid fa-robot"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-white">Consulta al Asistente IA</h3>
+                        <p class="text-xs sm:text-sm text-slate-400 mt-2 leading-relaxed">Pregúntale a PandaBot sobre tendencias de materias primas, análisis técnico o gestión de riesgo en tiempo real.</p>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-[#221f14]">
+                        <button onclick="switchTab('ai')" class="text-xs text-gold-400 font-bold hover:underline flex items-center space-x-1.5">
+                            <span>Hablar con PandaBot</span><i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Call to action banner -->
+            <div class="bg-[#121212] border border-gold-500/30 rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-2xl">
+                <div>
+                    <h4 class="text-lg font-bold text-white">¿Listo para ejecutar tu primera operación?</h4>
+                    <p class="text-xs sm:text-sm text-slate-400 mt-1">Explora los mercados disponibles y abre posiciones en acciones, petróleo, trigo o criptomonedas.</p>
+                </div>
+                <button onclick="switchTab('dashboard')" class="w-full sm:w-auto bg-gradient-to-r from-gold-500 to-amber-600 hover:from-gold-400 text-black font-extrabold px-6 py-3.5 rounded-xl shadow-lg shadow-gold-600/20 transition-all whitespace-nowrap">
+                    Comenzar Ahora en Mercados
+                </button>
+            </div>
+        </section>
+
+        <!-- TAB: MARKETS DASHBOARD -->
+        <section id="tab-dashboard" class="space-y-6 hidden">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-2xl sm:text-3xl font-black text-white tracking-tight">Mercados Globales</h2>
+                    <p class="text-xs sm:text-sm text-slate-400 mt-1">Cotizaciones en tiempo real y activos listos para operar con apalancamiento virtual.</p>
+                </div>
+                <!-- Filter buttons -->
+                <div class="flex items-center space-x-2 overflow-x-auto pb-2 md:pb-0">
+                    <button onclick="filterAssets('all')" id="filter-all" class="asset-filter px-4 py-2 bg-gradient-to-r from-gold-500 to-amber-600 text-black text-xs font-bold rounded-xl whitespace-nowrap shadow-md transition-all">Todos</button>
+                    <button onclick="filterAssets('ai')" id="filter-ai" class="asset-filter px-4 py-2 bg-[#121212] hover:bg-[#1a180f] border border-[#2a2617] text-slate-300 text-xs font-semibold rounded-xl whitespace-nowrap transition-all">Inteligencia Artificial</button>
+                    <button onclick="filterAssets('commodity')" id="filter-commodity" class="asset-filter px-4 py-2 bg-[#121212] hover:bg-[#1a180f] border border-[#2a2617] text-slate-300 text-xs font-semibold rounded-xl whitespace-nowrap transition-all">Materias Primas (Petróleo/Trigo)</button>
+                    <button onclick="filterAssets('crypto')" id="filter-crypto" class="asset-filter px-4 py-2 bg-[#121212] hover:bg-[#1a180f] border border-[#2a2617] text-slate-300 text-xs font-semibold rounded-xl whitespace-nowrap transition-all">Criptomonedas</button>
+                    <button onclick="filterAssets('forex')" id="filter-forex" class="asset-filter px-4 py-2 bg-[#121212] hover:bg-[#1a180f] border border-[#2a2617] text-slate-300 text-xs font-semibold rounded-xl whitespace-nowrap transition-all">Divisas (Forex)</button>
+                </div>
+            </div>
+
+            <!-- Assets Grid -->
+            <div id="assets-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Dynamically populated -->
+            </div>
+        </section>
+
+        <!-- TAB: PORTFOLIO & SIMULATOR -->
+        <section id="tab-simulator" class="space-y-6 hidden">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-2xl sm:text-3xl font-black text-white tracking-tight">Portafolio y Posiciones</h2>
+                    <p class="text-xs sm:text-sm text-slate-400 mt-1">Supervisa tus inversiones activas, el valor neto de tu cuenta y el historial de transacciones.</p>
+                </div>
+                <button onclick="switchTab('dashboard')" class="bg-gradient-to-r from-gold-500 to-amber-600 hover:from-gold-400 text-black text-xs font-bold px-5 py-3 rounded-xl shadow-lg shadow-gold-600/20 transition-all flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-plus"></i><span>Nueva Operación</span>
+                </button>
+            </div>
+
+            <!-- Portfolio Summary Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                <div class="bg-[#121212] border border-[#2a2617] rounded-2xl p-6 shadow-2xl">
+                    <span class="text-xs text-slate-400 uppercase tracking-widest font-semibold block">Efectivo Disponible</span>
+                    <span id="sim-cash" class="text-2xl sm:text-3xl font-black text-white font-mono mt-2 block">$10,000.00</span>
+                    <span class="text-xs text-emerald-400 mt-2 flex items-center space-x-1">
+                        <i class="fa-solid fa-shield"></i><span>Liquidez garantizada</span>
+                    </span>
+                </div>
+                <div class="bg-[#121212] border border-[#2a2617] rounded-2xl p-6 shadow-2xl">
+                    <span class="text-xs text-slate-400 uppercase tracking-widest font-semibold block">Valor de Posiciones</span>
+                    <span id="sim-portfolio-value" class="text-2xl sm:text-3xl font-black text-gold-400 font-mono mt-2 block">$0.00</span>
+                    <span id="position-count" class="text-xs text-slate-400 mt-2 block">0 posiciones activas</span>
+                </div>
+                <div class="bg-[#121212] border border-[#2a2617] rounded-2xl p-6 shadow-2xl">
+                    <span class="text-xs text-slate-400 uppercase tracking-widest font-semibold block">Patrimonio Neto Total</span>
+                    <span id="sim-net-worth" class="text-2xl sm:text-3xl font-black text-white font-mono mt-2 block">$10,000.00</span>
+                    <span class="text-xs text-slate-400 mt-2 block">Efectivo + Inversiones</span>
+                </div>
+            </div>
+
+            <!-- Open Positions Table -->
+            <div class="bg-[#121212] border border-[#2a2617] rounded-2xl shadow-2xl overflow-hidden">
+                <div class="px-6 py-4 border-b border-[#221f14] flex justify-between items-center">
+                    <h3 class="font-bold text-white text-base">Posiciones Abiertas</h3>
+                    <span class="text-xs text-slate-400 font-mono">Actualización en tiempo real</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-[#221f14] text-[11px] font-mono text-slate-400 uppercase tracking-wider bg-[#0a0a0a]">
+                                <th class="py-3 px-4">Activo</th>
+                                <th class="py-3 px-4">Tipo</th>
+                                <th class="py-3 px-4">Cantidad</th>
+                                <th class="py-3 px-4">Precio Entrada</th>
+                                <th class="py-3 px-4">Precio Actual</th>
+                                <th class="py-3 px-4 text-right">P&L (Ganancia/Pérdida)</th>
+                                <th class="py-3 px-4 text-center">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="positions-table-body" class="divide-y divide-[#221f14] text-sm">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Transaction History -->
+            <div class="bg-[#121212] border border-[#2a2617] rounded-2xl p-6 shadow-2xl">
+                <h3 class="font-bold text-white text-base mb-4">Historial de Operaciones Recientes</h3>
+                <div id="history-container" class="space-y-3">
+                    <p class="text-xs text-slate-500 italic">Sin transacciones registradas aún.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB: CALCULATOR & RETURNS PROJECTION -->
+        <section id="tab-calculator" class="space-y-6 hidden">
+            <div class="bg-gradient-to-r from-[#121212] via-[#0d0d0d] to-[#121212] border border-gold-500/30 rounded-2xl p-6 sm:p-8 shadow-2xl">
+                <span class="text-xs uppercase tracking-widest font-extrabold text-gold-400 bg-gold-500/10 px-3 py-1 rounded-full border border-gold-500/20">Herramienta Financiera</span>
+                <h2 class="text-2xl sm:text-4xl font-black text-white mt-3 tracking-tight">Calculadora de Ganancias y Retornos</h2>
+                <p class="text-slate-300 text-sm sm:text-base mt-2 max-w-2xl leading-relaxed">Proyecta el crecimiento de tu capital en los mercados de IA, petróleo, trigo y criptomonedas utilizando interés compuesto.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Controls Card -->
+                <div class="bg-[#121212] border border-[#2a2617] rounded-2xl p-6 shadow-2xl space-y-5 lg:col-span-1">
+                    <h3 class="text-lg font-bold text-white border-b border-[#221f14] pb-3">Parámetros de Inversión</h3>
+                    
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-2">Capital Inicial (USD)</label>
+                        <input type="number" id="calc-capital" value="5000" min="100" max="1000000" step="100" oninput="calculateReturns()" class="w-full bg-[#0a0a0a] border border-[#2a2617] rounded-xl px-4 py-3 text-white font-mono text-sm focus:outline-none focus:border-gold-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-2">Perfil de Mercado / Rendimiento Estimado Anual</label>
+                        <select id="calc-profile" onchange="calculateReturns()" class="w-full bg-[#0a0a0a] border border-[#2a2617] rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-gold-500">
+                            <option value="0.12">Moderado (Acciones IA & Dividendos - 12% anual)</option>
+                            <option value="0.22" selected>Crecimiento (Petróleo WTI & Trigo - 22% anual)</option>
+                            <option value="0.38">Agresivo (Criptomonedas & Tech High-Growth - 38% anual)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-2">Horizonte de Tiempo</label>
+                        <select id="calc-years" onchange="calculateReturns()" class="w-full bg-[#0a0a0a] border border-[#2a2617] rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-gold-500">
+                            <option value="1">1 Año</option>
+                            <option value="3" selected>3 Años</option>
+                            <option value="5">5 Años</option>
+                            <option value="10">10 Años</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Results Display Card -->
+                <div class="bg-[#121212] border border-gold-500/30 rounded-2xl p-6 sm:p-8 shadow-2xl flex flex-col justify-between lg:col-span-2 relative overflow-hidden">
+                    <div class="absolute right-0 bottom-0 translate-x-6 translate-y-6 w-64 h-64 bg-gold-500/5 rounded-full blur-3xl pointer-events-none"></div>
+                    <div>
+                        <h3 class="text-lg font-bold text-white mb-6">Proyección de Crecimiento Financiero</h3>
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+                            <div class="bg-[#0a0a0a] border border-[#221f14] p-5 rounded-2xl">
+                                <span class="text-xs text-slate-400 block font-mono">Inversión Inicial</span>
+                                <span id="res-initial" class="text-xl sm:text-2xl font-black text-white font-mono mt-1 block">$5,000.00</span>
+                            </div>
+                            <div class="bg-[#0a0a0a] border border-[#221f14] p-5 rounded-2xl">
+                                <span class="text-xs text-slate-400 block font-mono">Ganancia Estimada</span>
+                                <span id="res-profit" class="text-xl sm:text-2xl font-black text-gold-400 font-mono mt-1 block">+$0.00</span>
+                            </div>
+                            <div class="bg-[#0a0a0a] border border-gold-500/40 p-5 rounded-2xl">
+                                <span class="text-xs text-gold-400 block font-mono uppercase font-bold">Capital Final</span>
+                                <span id="res-final" class="text-2xl sm:text-3xl font-black text-white font-mono mt-1 block">$0.00</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-[#0a0a0a] border border-[#221f14] p-4 rounded-xl text-xs text-slate-400 leading-relaxed">
+                            <i class="fa-solid fa-circle-info text-gold-400 mr-1.5"></i> Nota: Los cálculos se basan en tasas de interés compuesto anual estimado. Los rendimientos pasados no garantizan ganancias futuras.
+                        </div>
+                    </div>
+
+                    <div class="mt-8 pt-4 border-t border-[#221f14] flex justify-end">
+                        <button onclick="switchTab('dashboard')" class="bg-gradient-to-r from-gold-500 to-amber-600 hover:from-gold-400 text-black font-extrabold px-6 py-3 rounded-xl text-xs transition-all shadow-lg shadow-gold-600/20">
+                            Operar con este Capital Ahora
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB: ACADEMY -->
+        <section id="tab-academy" class="space-y-6 hidden">
+            <div>
+                <h2 class="text-2xl sm:text-3xl font-black text-white tracking-tight">Academia Panda Trading</h2>
+                <p class="text-xs sm:text-sm text-slate-400 mt-1">Aprende los fundamentos de cómo invertir en Inteligencia Artificial, Petróleo, Trigo y Divisas.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Lesson 1 -->
+                <div onclick="openLessonModal('ai')" class="bg-[#121212] border border-[#2a2617] rounded-2xl p-6 shadow-2xl cursor-pointer hover:border-gold-500/40 transition-all group">
+                    <div class="w-12 h-12 bg-gold-500/10 rounded-xl flex items-center justify-center text-gold-400 text-xl mb-4 border border-gold-500/20">
+                        <i class="fa-solid fa-microchip"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white group-hover:text-gold-400 transition-colors">Invertir en Inteligencia Artificial</h3>
+                    <p class="text-xs sm:text-sm text-slate-400 mt-2 leading-relaxed">Descubre por qué gigantes de semiconductores y software como NVIDIA y Microsoft lideran la revolución tecnológica.</p>
+                    <span class="text-xs text-gold-400 font-bold mt-4 inline-flex items-center space-x-1">
+                        <span>Leer lección</span><i class="fa-solid fa-arrow-right"></i>
+                    </span>
+                </div>
+
+                <!-- Lesson 2 -->
+                <div onclick="openLessonModal('oil')" class="bg-[#121212] border border-[#2a2617] rounded-2xl p-6 shadow-2xl cursor-pointer hover:border-gold-500/40 transition-all group">
+                    <div class="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-400 text-xl mb-4 border border-amber-500/20">
+                        <i class="fa-solid fa-oil-well"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white group-hover:text-gold-400 transition-colors">Trading de Petróleo Crudo (WTI)</h3>
+                    <p class="text-xs sm:text-sm text-slate-400 mt-2 leading-relaxed">Cómo operan los contratos de energía, el impacto de la OPEP+ y los inventarios semanales en la cotización.</p>
+                    <span class="text-xs text-amber-400 font-bold mt-4 inline-flex items-center space-x-1">
+                        <span>Leer lección</span><i class="fa-solid fa-arrow-right"></i>
+                    </span>
+                </div>
+
+                <!-- Lesson 3 -->
+                <div onclick="openLessonModal('wheat')" class="bg-[#121212] border border-[#2a2617] rounded-2xl p-6 shadow-2xl cursor-pointer hover:border-gold-500/40 transition-all group">
+                    <div class="w-12 h-12 bg-yellow-500/10 rounded-xl flex items-center justify-center text-yellow-400 text-xl mb-4 border border-yellow-500/20">
+                        <i class="fa-solid fa-wheat-awn"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white group-hover:text-gold-400 transition-colors">Mercado de Trigo y Agrocommodities</h3>
+                    <p class="text-xs sm:text-sm text-slate-400 mt-2 leading-relaxed">Entiende el mercado de futuros de granos de Chicago, clima, sequías y su relación directa con la inflación.</p>
+                    <span class="text-xs text-yellow-400 font-bold mt-4 inline-flex items-center space-x-1">
+                        <span>Leer lección</span><i class="fa-solid fa-arrow-right"></i>
+                    </span>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB: AI ASSISTANT -->
+        <section id="tab-ai" class="space-y-6 hidden">
+            <div class="bg-[#121212] border border-[#2a2617] rounded-2xl p-6 shadow-2xl flex flex-col h-[70vh]">
+                <div class="flex items-center space-x-3 pb-4 border-b border-[#221f14]">
+                    <div class="w-10 h-10 rounded-xl bg-gold-500/20 border border-gold-500/30 flex items-center justify-center text-gold-400 text-lg">
+                        <i class="fa-solid fa-robot"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-white">PandaBot IA - Asistente Financiero</h3>
+                        <span class="text-xs text-slate-400">Pregúntale sobre acciones, petróleo, trigo o estrategias</span>
+                    </div>
+                </div>
+
+                <!-- Chat messages container -->
+                <div id="chat-messages" class="flex-1 overflow-y-auto py-4 space-y-4 pr-2">
+                    <div class="flex items-start space-x-3">
+                        <div class="w-8 h-8 rounded-lg bg-gold-600/20 border border-gold-500/30 flex items-center justify-center text-gold-400 flex-shrink-0">
+                            <i class="fa-solid fa-robot text-xs"></i>
+                        </div>
+                        <div class="bg-[#181814] border border-[#2a2617] rounded-2xl p-4 text-sm text-slate-200 max-w-xl shadow-md">
+                            ¡Hola! Soy PandaBot. ¿En qué puedo ayudarte hoy con tus inversiones en Inteligencia Artificial, Petróleo WTI o Trigo?
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Suggested prompts -->
+                <div class="py-2 flex flex-wrap gap-2">
+                    <button onclick="sendQuickPrompt('¿Conviene invertir en NVIDIA (IA) ahora?')" class="text-xs bg-[#1a180f] border border-[#2a2617] text-gold-400 hover:border-gold-500/40 px-3 py-1.5 rounded-xl transition-all">💡 ¿Invertir en IA?</button>
+                    <button onclick="sendQuickPrompt('¿Cómo afecta la OPEP al precio del Petróleo?')" class="text-xs bg-[#1a180f] border border-[#2a2617] text-gold-400 hover:border-gold-500/40 px-3 py-1.5 rounded-xl transition-all">🛢️ Petróleo y OPEP</button>
+                    <button onclick="sendQuickPrompt('¿Por qué sube el precio del Trigo?')" class="text-xs bg-[#1a180f] border border-[#2a2617] text-gold-400 hover:border-gold-500/40 px-3 py-1.5 rounded-xl transition-all">🌾 Futuros de Trigo</button>
+                </div>
+
+                <!-- Input area -->
+                <div class="pt-3 border-t border-[#221f14] flex space-x-3">
+                    <input type="text" id="chat-input" onkeypress="if(event.key==='Enter') sendChatMessage()" placeholder="Escribe tu consulta financiera..." class="flex-1 bg-[#0a0a0a] border border-[#2a2617] rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-gold-500">
+                    <button onclick="sendChatMessage()" class="bg-gradient-to-r from-gold-500 to-amber-600 hover:from-gold-400 text-black font-extrabold px-6 py-3 rounded-xl shadow-lg transition-all flex items-center justify-center">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Trade Modal -->
+    <div id="trade-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="bg-[#121212] border border-gold-500/30 rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl relative">
+            <button onclick="closeTradeModal()" class="absolute top-6 right-6 text-slate-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <div class="flex items-center space-x-4 mb-6">
+                <div id="modal-asset-icon" class="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold bg-[#181814] border border-[#2a2617]"></div>
+                <div>
+                    <h3 id="modal-asset-name" class="text-lg font-bold text-white">Activo</h3>
+                    <span id="modal-asset-symbol" class="text-xs text-slate-400 font-mono">SYM</span>
+                </div>
+            </div>
+
+            <div class="mb-6 bg-[#0a0a0a] p-4 rounded-2xl border border-[#2a2617] flex justify-between items-center">
+                <div>
+                    <span class="text-xs text-slate-500 block">Precio Actual en Vivo</span>
+                    <span id="modal-asset-price" class="text-xl font-extrabold text-gold-400 font-mono">$0.00</span>
+                </div>
+                <div class="h-16 w-32">
+                    <canvas id="modalChart"></canvas>
+                </div>
+            </div>
+
+            <div class="space-y-4 mb-6">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-2">Cantidad de Unidades</label>
+                    <input type="number" id="trade-amount" value="1" min="0.01" step="0.01" oninput="calculateTotalTrade()" class="w-full bg-[#0a0a0a] border border-[#2a2617] rounded-xl px-4 py-3 text-white font-mono text-sm focus:outline-none focus:border-gold-500">
+                </div>
+                <div class="flex justify-between items-center text-sm px-1">
+                    <span class="text-slate-400">Costo Total Estimado:</span>
+                    <span id="modal-total-cost" class="font-extrabold text-white font-mono">$0.00</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <button onclick="executeTrade('BUY')" class="bg-gradient-to-r from-gold-500 to-amber-600 hover:from-gold-400 text-black font-extrabold py-3.5 px-4 rounded-xl shadow-lg transition-all text-sm">
+                    Comprar (LONG)
+                </button>
+                <button onclick="executeTrade('SELL')" class="bg-[#1a180f] hover:bg-rose-900/30 text-rose-400 border border-rose-500/30 font-bold py-3.5 px-4 rounded-xl transition-all text-sm">
+                    Vender Short (SHORT)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lesson Modal -->
+    <div id="lesson-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="bg-[#121212] border border-gold-500/30 rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl relative">
+            <button onclick="closeLessonModal()" class="absolute top-6 right-6 text-slate-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <div id="lesson-content"></div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-24 opacity-0 transition-all duration-300 bg-[#121212] border border-gold-500/40 px-5 py-4 rounded-2xl shadow-2xl flex items-center space-x-3">
+        <div id="toast-icon" class="text-gold-400 text-lg"></div>
+        <div>
+            <h5 id="toast-title" class="font-bold text-white text-sm">Notificación</h5>
+            <p id="toast-msg" class="text-xs text-slate-400"></p>
+        </div>
+    </div>
+
+    <script>
+        // Global State
+        let state = {
+            cash: 10000.00,
+            positions: [],
+            history: [],
+            currentFilter: 'all',
+            selectedAsset: null
+        };
+
+        // Assets Database covering IA, Commodities (Petróleo, Trigo), Crypto, Forex
+        const assets = [
+            { id: 'nvda', name: 'NVIDIA Corp.', symbol: 'NVDA', category: 'ai', price: 128.50, change: +3.42, icon: 'fa-microchip', color: 'text-gold-400', desc: 'Líder absoluto en semiconductores y aceleradores de IA generativa.' },
+            { id: 'msft', name: 'Microsoft Corp.', symbol: 'MSFT', category: 'ai', price: 445.20, change: +1.15, icon: 'fa-windows', color: 'text-amber-300', desc: 'Gigante tecnológico con fuerte inversión y propiedad en OpenAI.' },
+            { id: 'oil', name: 'Petróleo Crudo WTI', symbol: 'USOIL', category: 'commodity', price: 78.40, change: -0.85, icon: 'fa-oil-well', color: 'text-amber-500', desc: 'Referencia mundial del mercado energético y contratos de petróleo.' },
+            { id: 'wheat', name: 'Trigo de Chicago (Futuros)', symbol: 'WHEAT', category: 'commodity', price: 562.10, change: +1.80, icon: 'fa-wheat-awn', color: 'text-yellow-400', desc: 'Principal materia prima agrícola alimentaria cotizada en bolsa.' },
+            { id: 'btc', name: 'Bitcoin', symbol: 'BTC', category: 'crypto', price: 64200.00, change: +2.30, icon: 'fa-bitcoin', color: 'text-gold-500', desc: 'El activo digital descentralizado más grande del ecosistema cripto.' },
+            { id: 'gold', name: 'Oro al Contado', symbol: 'XAU', category: 'commodity', price: 2380.50, change: +0.45, icon: 'fa-coins', color: 'text-amber-400', desc: 'Activo refugio tradicional contra la inflación y la incertidumbre.' },
+            { id: 'eurusd', name: 'EUR / USD', symbol: 'EURUSD', category: 'forex', price: 1.089, change: -0.12, icon: 'fa-euro-sign', color: 'text-gold-300', desc: 'El par de divisas más negociado del mercado cambiario mundial.' },
+            { id: 'googl', name: 'Alphabet (Google IA)', symbol: 'GOOGL', category: 'ai', price: 178.30, change: +0.92, icon: 'fa-google', color: 'text-red-400', desc: 'Innovador en modelos de lenguaje Gemini e infraestructura en la nube.' },
+            { id: 'corn', name: 'Maíz (Futuros)', symbol: 'CORN', category: 'commodity', price: 450.80, change: -0.50, icon: 'fa-seedling', color: 'text-lime-400', desc: 'Materia prima esencial para alimentación animal y biocombustibles.' }
+        ];
+
+        let modalChartInstance = null;
+
+        function loadStorage() {
+            const saved = localStorage.getItem('panda_trading_state');
+            if (saved) {
+                try {
+                    state = JSON.parse(saved);
+                } catch(e) { console.error(e); }
+            }
+        }
+
+        function saveStorage() {
+            localStorage.setItem('panda_trading_state', JSON.stringify(state));
+        }
+
+        window.onload = function() {
+            loadStorage();
+            renderAssets();
+            updatePortfolioUI();
+            calculateReturns();
+            
+            // Default to 'getting-started' tab for first-time visitors
+            switchTab('getting-started');
+
+            // Simulate live ticks
+            setInterval(() => {
+                simulateMarketTicks();
+            }, 3500);
+        };
+
+        function simulateMarketTicks() {
+            assets.forEach(asset => {
+                const fluctuation = (Math.random() - 0.49) * (asset.price * 0.004);
+                asset.price = Math.max(0.01, asset.price + fluctuation);
+                asset.change = +(asset.change + (Math.random() - 0.5) * 0.1).toFixed(2);
+            });
+            
+            if(!document.getElementById('tab-dashboard').classList.contains('hidden')) {
+                renderAssets();
+            }
+            if(!document.getElementById('tab-simulator').classList.contains('hidden')) {
+                updatePortfolioUI();
+            }
+        }
+
+        function switchTab(tabId) {
+            const tabs = ['getting-started', 'dashboard', 'simulator', 'calculator', 'academy', 'ai'];
+            tabs.forEach(t => {
+                const section = document.getElementById(`tab-${t}`);
+                if(section) section.classList.add('hidden');
+                
+                const navBtn = document.getElementById(`nav-${t}`);
+                if(navBtn) {
+                    navBtn.classList.remove('tab-active', 'text-gold-400', 'font-bold');
+                    navBtn.classList.add('text-slate-400');
+                }
+                
+                const mobBtn = document.getElementById(`mob-${t}`);
+                if(mobBtn) {
+                    mobBtn.classList.remove('text-gold-400', 'font-bold');
+                    mobBtn.classList.add('text-slate-400');
+                }
+            });
+
+            const activeSection = document.getElementById(`tab-${tabId}`);
+            if(activeSection) activeSection.classList.remove('hidden');
+
+            const activeNav = document.getElementById(`nav-${tabId}`);
+            if(activeNav) {
+                activeNav.classList.add('tab-active', 'text-gold-400', 'font-bold');
+                activeNav.classList.remove('text-slate-400');
+            }
+            const activeMob = document.getElementById(`mob-${tabId}`);
+            if(activeMob) {
+                activeMob.classList.add('text-gold-400', 'font-bold');
+                activeMob.classList.remove('text-slate-400');
+            }
+
+            if(tabId === 'simulator') {
+                updatePortfolioUI();
+            } else if(tabId === 'calculator') {
+                calculateReturns();
+            }
+        }
+
+        function calculateReturns() {
+            const capital = parseFloat(document.getElementById('calc-capital').value) || 0;
+            const annualRate = parseFloat(document.getElementById('calc-profile').value) || 0.22;
+            const years = parseInt(document.getElementById('calc-years').value) || 3;
+
+            const finalAmount = capital * Math.pow(1 + annualRate, years);
+            const profit = finalAmount - capital;
+
+            document.getElementById('res-initial').innerText = `$${capital.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('res-profit').innerText = `+$${profit.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('res-final').innerText = `$${finalAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        }
+
+        function filterAssets(category) {
+            state.currentFilter = category;
+            document.querySelectorAll('.asset-filter').forEach(btn => {
+                btn.className = "asset-filter px-4 py-2 bg-[#121212] hover:bg-[#1a180f] border border-[#2a2617] text-slate-300 text-xs font-semibold rounded-xl whitespace-nowrap transition-all";
+            });
+            const activeBtn = document.getElementById(`filter-${category}`);
+            if(activeBtn) {
+                activeBtn.className = "asset-filter px-4 py-2 bg-gradient-to-r from-gold-500 to-amber-600 text-black text-xs font-bold rounded-xl whitespace-nowrap shadow-md transition-all";
+            }
+            renderAssets();
+        }
+
+        function renderAssets() {
+            const grid = document.getElementById('assets-grid');
+            if(!grid) return;
+            grid.innerHTML = '';
+
+            const filtered = state.currentFilter === 'all' 
+                ? assets 
+                : assets.filter(a => a.category === state.currentFilter);
+
+            filtered.forEach(asset => {
+                const isPositive = asset.change >= 0;
+                const card = document.createElement('div');
+                card.className = "bg-[#121212] border border-[#2a2617] rounded-2xl p-5 shadow-2xl hover:border-gold-500/40 transition-all flex flex-col justify-between group";
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 rounded-xl bg-[#181814] border border-[#2a2617] flex items-center justify-center ${asset.color} text-lg">
+                                    <i class="fa-solid ${asset.icon}"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-white text-base group-hover:text-gold-400 transition-colors">${asset.name}</h3>
+                                    <span class="text-xs text-slate-400 font-mono">${asset.symbol}</span>
+                                </div>
+                            </div>
+                            <span class="text-xs font-semibold px-2.5 py-1 rounded-full ${isPositive ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}">
+                                ${isPositive ? '+' : ''}${asset.change}%
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-400 mb-4 line-clamp-2">${asset.desc}</p>
+                    </div>
+                    <div class="pt-4 border-t border-[#221f14] flex items-center justify-between">
+                        <div>
+                            <span class="text-xs text-slate-500 block">Precio en vivo</span>
+                            <span class="text-lg font-extrabold text-white">$${asset.price.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                        </div>
+                        <button onclick="openTradeModal('${asset.id}')" class="bg-gradient-to-r from-gold-500 to-amber-600 hover:from-gold-400 text-black text-xs font-bold px-4 py-2.5 rounded-xl shadow-lg shadow-gold-600/20 transition-all flex items-center space-x-1.5">
+                            <i class="fa-solid fa-chart-line"></i><span>Operar</span>
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function openTradeModal(assetId) {
+            const asset = assets.find(a => a.id === assetId);
+            if(!asset) return;
+            state.selectedAsset = asset;
+
+            document.getElementById('modal-asset-name').innerText = asset.name;
+            document.getElementById('modal-asset-symbol').innerText = asset.symbol;
+            document.getElementById('modal-asset-price').innerText = `$${asset.price.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('trade-amount').value = 1;
+            
+            const iconContainer = document.getElementById('modal-asset-icon');
+            iconContainer.className = `w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold bg-[#181814] border border-[#2a2617] ${asset.color}`;
+            iconContainer.innerHTML = `<i class="fa-solid ${asset.icon}"></i>`;
+
+            calculateTotalTrade();
+
+            document.getElementById('trade-modal').classList.remove('hidden');
+            document.getElementById('trade-modal').classList.add('flex');
+
+            renderModalChart(asset);
+        }
+
+        function closeTradeModal() {
+            document.getElementById('trade-modal').classList.remove('flex');
+            document.getElementById('trade-modal').classList.add('hidden');
+            if(modalChartInstance) modalChartInstance.destroy();
+        }
+
+        function calculateTotalTrade() {
+            if(!state.selectedAsset) return;
+            const amount = parseFloat(document.getElementById('trade-amount').value) || 0;
+            const total = amount * state.selectedAsset.price;
+            document.getElementById('modal-total-cost').innerText = `$${total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        }
+
+        function renderModalChart(asset) {
+            const ctx = document.getElementById('modalChart').getContext('2d');
+            if(modalChartInstance) modalChartInstance.destroy();
+
+            const dataPoints = [];
+            let p = asset.price * 0.95;
+            for(let i=0; i<10; i++) {
+                p += (Math.random() - 0.45) * (asset.price * 0.01);
+                dataPoints.push(+p.toFixed(2));
+            }
+            dataPoints.push(asset.price);
+
+            modalChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['T-10', 'T-9', 'T-8', 'T-7', 'T-6', 'T-5', 'T-4', 'T-3', 'T-2', 'T-1', 'Ahora'],
+                    datasets: [{
+                        data: dataPoints,
+                        borderColor: '#d4af37',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        tension: 0.3,
+                        fill: true,
+                        backgroundColor: 'rgba(212, 175, 55, 0.05)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { display: false },
+                        y: { display: false }
+                    }
+                }
+            });
+        }
+
+        function executeTrade(type) {
+            if(!state.selectedAsset) return;
+            const amount = parseFloat(document.getElementById('trade-amount').value);
+            if(isNaN(amount) || amount <= 0) {
+                showToast('Cantidad inválida', 'Ingresa un número mayor a 0', 'error');
+                return;
+            }
+
+            const totalCost = amount * state.selectedAsset.price;
+
+            if(type === 'BUY') {
+                if(state.cash < totalCost) {
+                    showToast('Fondos insuficientes', `Necesitas $${totalCost.toFixed(2)} pero tienes $${state.cash.toFixed(2)}`, 'error');
+                    return;
+                }
+                state.cash -= totalCost;
+                state.positions.push({
+                    id: Date.now(),
+                    assetId: state.selectedAsset.id,
+                    name: state.selectedAsset.name,
+                    symbol: state.selectedAsset.symbol,
+                    type: 'COMPRA (LONG)',
+                    amount: amount,
+                    buyPrice: state.selectedAsset.price
+                });
+                state.history.unshift({
+                    text: `Compra de ${amount}x ${state.selectedAsset.symbol} a $${state.selectedAsset.price.toFixed(2)}`,
+                    time: new Date().toLocaleTimeString()
+                });
+                showToast('Operación Exitosa', `Has comprado ${amount} unidades de ${state.selectedAsset.symbol}`, 'success');
+            } else {
+                state.cash += totalCost;
+                state.positions.push({
+                    id: Date.now(),
+                    assetId: state.selectedAsset.id,
+                    name: state.selectedAsset.name,
+                    symbol: state.selectedAsset.symbol,
+                    type: 'VENTA (SHORT)',
+                    amount: amount,
+                    buyPrice: state.selectedAsset.price
+                });
+                state.history.unshift({
+                    text: `Venta Short de ${amount}x ${state.selectedAsset.symbol} a $${state.selectedAsset.price.toFixed(2)}`,
+                    time: new Date().toLocaleTimeString()
+                });
+                showToast('Operación Exitosa', `Has abierto posición short en ${state.selectedAsset.symbol}`, 'success');
+            }
+
+            saveStorage();
+            closeTradeModal();
+            updatePortfolioUI();
+        }
+
+        function closePosition(positionId) {
+            const index = state.positions.findIndex(p => p.id === positionId);
+            if(index === -1) return;
+            const pos = state.positions[index];
+            const currentAsset = assets.find(a => a.id === pos.assetId);
+            const currentPrice = currentAsset ? currentAsset.price : pos.buyPrice;
+            
+            const pnl = pos.type.includes('LONG') 
+                ? (currentPrice - pos.buyPrice) * pos.amount 
+                : (pos.buyPrice - currentPrice) * pos.amount;
+
+            state.cash += (pos.buyPrice * pos.amount) + pnl;
+            state.positions.splice(index, 1);
+            
+            state.history.unshift({
+                text: `Cierre de posición ${pos.symbol} con P&L: $${pnl.toFixed(2)}`,
+                time: new Date().toLocaleTimeString()
+            });
+
+            saveStorage();
+            updatePortfolioUI();
+            showToast('Posición Cerrada', `Resultado: $${pnl.toFixed(2)}`, pnl >= 0 ? 'success' : 'error');
+        }
+
+        function updatePortfolioUI() {
+            let totalPortfolioValue = 0;
+            const tbody = document.getElementById('positions-table-body');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+
+            if(state.positions.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-slate-500 italic">No tienes operaciones activas. Elige un activo en Mercados para empezar.</td></tr>`;
+            } else {
+                state.positions.forEach(pos => {
+                    const asset = assets.find(a => a.id === pos.assetId);
+                    const currentPrice = asset ? asset.price : pos.buyPrice;
+                    const currentValue = pos.amount * currentPrice;
+                    totalPortfolioValue += currentValue;
+
+                    const pnl = pos.type.includes('LONG') 
+                        ? (currentPrice - pos.buyPrice) * pos.amount 
+                        : (pos.buyPrice - currentPrice) * pos.amount;
+                    const isProfit = pnl >= 0;
+
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-[#181814] transition-colors";
+                    tr.innerHTML = `
+                        <td class="py-3.5 px-4 font-semibold text-white">${pos.name} <span class="text-xs text-slate-400 font-mono block">${pos.symbol}</span></td>
+                        <td class="py-3.5 px-4 text-xs"><span class="px-2.5 py-1 rounded-full font-bold ${pos.type.includes('LONG') ? 'bg-gold-500/10 text-gold-400 border border-gold-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}">${pos.type}</span></td>
+                        <td class="py-3.5 px-4 text-slate-300 font-mono">${pos.amount}</td>
+                        <td class="py-3.5 px-4 text-slate-300 font-mono">$${pos.buyPrice.toFixed(2)}</td>
+                        <td class="py-3.5 px-4 text-white font-medium font-mono">$${currentPrice.toFixed(2)}</td>
+                        <td class="py-3.5 px-4 text-right font-bold font-mono ${isProfit ? 'text-gold-400' : 'text-rose-400'}">${isProfit ? '+' : ''}$${pnl.toFixed(2)}</td>
+                        <td class="py-3.5 px-4 text-center">
+                            <button onclick="closePosition(${pos.id})" class="bg-[#1a180f] hover:bg-rose-900/30 text-slate-300 hover:text-rose-400 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all border border-[#2a2617]">Cerrar</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            const netWorth = state.cash + totalPortfolioValue;
+
+            const headerBalance = document.getElementById('header-balance');
+            if(headerBalance) headerBalance.innerText = `$${state.cash.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            
+            const simCash = document.getElementById('sim-cash');
+            if(simCash) simCash.innerText = `$${state.cash.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            
+            const simPortfolioValue = document.getElementById('sim-portfolio-value');
+            if(simPortfolioValue) simPortfolioValue.innerText = `$${totalPortfolioValue.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            
+            const simNetWorth = document.getElementById('sim-net-worth');
+            if(simNetWorth) simNetWorth.innerText = `$${netWorth.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            
+            const positionCount = document.getElementById('position-count');
+            if(positionCount) positionCount.innerText = `${state.positions.length} posiciones activas`;
+
+            const historyContainer = document.getElementById('history-container');
+            if(historyContainer) {
+                if(state.history.length === 0) {
+                    historyContainer.innerHTML = `<p class="text-xs text-slate-500 italic">Sin transacciones registradas aún.</p>`;
+                } else {
+                    historyContainer.innerHTML = '';
+                    state.history.slice(0, 5).forEach(h => {
+                        const item = document.createElement('div');
+                        item.className = "flex justify-between items-center text-xs bg-[#0a0a0a] px-4 py-2.5 rounded-xl border border-[#221f14]";
+                        item.innerHTML = `<span class="text-slate-300">${h.text}</span><span class="text-slate-500 font-mono">${h.time}</span>`;
+                        historyContainer.appendChild(item);
+                    });
+                }
+            }
+        }
+
+        function resetAccount() {
+            if(confirm('¿Estás seguro de reiniciar tu cuenta virtual a $10,000?')) {
+                state.cash = 10000.00;
+                state.positions = [];
+                state.history = [];
+                saveStorage();
+                updatePortfolioUI();
+                showToast('Cuenta Reiniciada', 'Tu saldo virtual se ha restablecido a $10,000', 'success');
+            }
+        }
+
+        function showToast(title, msg, type = 'success') {
+            const toast = document.getElementById('toast');
+            if(!toast) return;
+            document.getElementById('toast-title').innerText = title;
+            document.getElementById('toast-msg').innerText = msg;
+            const icon = document.getElementById('toast-icon');
+            icon.className = type === 'success' ? 'fa-solid fa-circle-check text-gold-400 text-lg' : 'fa-solid fa-triangle-exclamation text-rose-400 text-lg';
+
+            toast.classList.remove('translate-y-24', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-24', 'opacity-0');
+            }, 3500);
+        }
+
+        const lessonsData = {
+            ai: {
+                title: 'Invertir en Inteligencia Artificial',
+                icon: 'fa-microchip',
+                color: 'text-gold-400',
+                content: 'La IA generativa y el hardware de semiconductores (GPUs) representan la mayor transformación tecnológica de la década. Al operar en acciones como NVIDIA o Microsoft, analiza siempre los márgenes de beneficio operativo, los contratos con centros de datos y la adopción empresarial.'
+            },
+            oil: {
+                title: 'Trading de Petróleo Crudo (WTI & Brent)',
+                icon: 'fa-oil-well',
+                color: 'text-amber-400',
+                content: 'El petróleo es la sangre de la economía global. Su precio está determinado por las reuniones de la OPEP+ (recortes de producción), inventarios semanales de crudo en EE.UU., y tensiones geopolíticas en Medio Oriente.'
+            },
+            wheat: {
+                title: 'Mercado de Trigo y Agrocommodities',
+                icon: 'fa-wheat-awn',
+                color: 'text-yellow-400',
+                content: 'Los contratos de trigo en Chicago cotizan en función de las previsiones meteorológicas (sequías o inundaciones), los corredores de exportación y la inflación global de alimentos.'
+            }
+        };
+
+        function openLessonModal(lessonKey) {
+            const lesson = lessonsData[lessonKey];
+            if(!lesson) return;
+            document.getElementById('lesson-content').innerHTML = `
+                <div class="flex items-center space-x-3 mb-4">
+                    <div class="w-12 h-12 rounded-xl bg-[#181814] border border-[#2a2617] flex items-center justify-center text-xl ${lesson.color}">
+                        <i class="fa-solid ${lesson.icon}"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white">${lesson.title}</h3>
+                </div>
+                <p class="text-slate-300 text-sm leading-relaxed">${lesson.content}</p>
+                <div class="mt-6 pt-4 border-t border-[#221f14] flex justify-end">
+                    <button onclick="closeLessonModal()" class="bg-gradient-to-r from-gold-500 to-amber-600 hover:from-gold-400 text-black font-bold px-5 py-2.5 rounded-xl text-xs transition-all">Entendido</button>
+                </div>
+            `;
+            document.getElementById('lesson-modal').classList.remove('hidden');
+            document.getElementById('lesson-modal').classList.add('flex');
+        }
+
+        function closeLessonModal() {
+            document.getElementById('lesson-modal').classList.remove('flex');
+            document.getElementById('lesson-modal').classList.add('hidden');
+        }
+
+        function sendQuickPrompt(promptText) {
+            document.getElementById('chat-input').value = promptText;
+            sendChatMessage();
+        }
+
+        function sendChatMessage() {
+            const input = document.getElementById('chat-input');
+            const text = input.value.trim();
+            if(!text) return;
+
+            const chatMessages = document.getElementById('chat-messages');
+            
+            chatMessages.innerHTML += `
+                <div class="flex items-start space-x-3 justify-end">
+                    <div class="bg-gradient-to-r from-gold-500 to-amber-600 text-black font-medium rounded-2xl p-4 text-sm max-w-xl shadow-md">
+                        ${escapeHTML(text)}
+                    </div>
+                </div>
+            `;
+            input.value = '';
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            setTimeout(() => {
+                let reply = "Analizando los mercados globales desde Panda Trading... Te recomiendo equilibrar tu portafolio combinando empresas de IA con materias primas defensivas como oro o petróleo.";
+                
+                const lower = text.toLowerCase();
+                if(lower.includes('ia') || lower.includes('inteligencia') || lower.includes('nvidia')) {
+                    reply = "Las acciones de IA como NVIDIA y Microsoft muestran una fuerte tendencia alcista debido a la demanda masiva de centros de datos. Vigila las valoraciones ante posibles correcciones.";
+                } else if(lower.includes('petróleo') || lower.includes('oil') || lower.includes('crudo')) {
+                    reply = "El Petróleo WTI cotiza bajo la atenta mirada de la OPEP+ y los inventarios estadounidenses. Un aumento en las tensiones geopolíticas suele disparar su precio rápidamente.";
+                } else if(lower.includes('trigo') || lower.includes('granos') || lower.includes('comida')) {
+                    reply = "El Trigo es un commodity altamente sensible a las condiciones climáticas en las grandes planicies productoras. Es clave para cobertura contra la inflación alimentaria.";
+                }
+
+                chatMessages.innerHTML += `
+                    <div class="flex items-start space-x-3">
+                        <div class="w-8 h-8 rounded-lg bg-gold-600/20 border border-gold-500/30 flex items-center justify-center text-gold-400 flex-shrink-0">
+                            <i class="fa-solid fa-robot text-xs"></i>
+                        </div>
+                        <div class="bg-[#181814] border border-[#2a2617] rounded-2xl p-4 text-sm text-slate-200 max-w-xl shadow-md">
+                            ${reply}
+                        </div>
+                    </div>
+                `;
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }, 800);
+        }
+
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, 
+                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+            );
+        }
+    </script>
+</body>
+</html>
